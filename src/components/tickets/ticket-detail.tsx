@@ -2,10 +2,9 @@
 
 import { History, Star } from "lucide-react";
 import { MODULE_LABELS } from "@/lib/constants";
-import { formatDateTime, formatRelative } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { PriorityBadge } from "@/components/tickets/priority-badge";
 import { SlaIndicator } from "@/components/tickets/sla-indicator";
 import { StatusBadge } from "@/components/tickets/status-badge";
@@ -79,20 +78,49 @@ export function TicketDetail({ ticket }: { ticket: TicketResponseDto }) {
         </CardHeader>
         <CardContent>
           <ol className="relative space-y-4 border-l pl-4">
-            {(ticket.notes?.length ? ticket.notes : []).map((note, i) => (
+            {buildActivity(ticket).map((entry, i) => (
               <li key={i} className="relative">
                 <span className="absolute -left-[21px] top-1 size-2 rounded-full bg-primary" />
-                <p className="text-sm text-foreground">{note}</p>
+                <p className="text-sm text-foreground">{entry.message}</p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(entry.at)}</p>
               </li>
             ))}
-            {!ticket.notes?.length && (
-              <li className="text-sm text-muted-foreground">Sin actividad registrada.</li>
-            )}
           </ol>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+function buildActivity(ticket: TicketResponseDto): { message: string; at: string }[] {
+  const entries: { message: string; at: string }[] = [
+    { message: `Ticket creado por ${ticket.requesterId}`, at: ticket.createdAt },
+  ];
+
+  if (ticket.assignedAgentId) {
+    entries.push({ message: `Asignado al agente ${ticket.assignedAgentId}`, at: ticket.updatedAt });
+  }
+
+  if (ticket.resolvedAt) {
+    entries.push({
+      message: ticket.resolutionNotes
+        ? `Resuelto: ${ticket.resolutionNotes}`
+        : "Ticket resuelto",
+      at: ticket.resolvedAt,
+    });
+  }
+
+  if (ticket.closedAt) {
+    entries.push({
+      message:
+        ticket.csatRating != null
+          ? `Cerrado con calificación CSAT ${ticket.csatRating}/5`
+          : "Ticket cerrado",
+      at: ticket.closedAt,
+    });
+  }
+
+  return entries;
 }
 
 function Detail({ label, value }: { label: string; value: string }) {

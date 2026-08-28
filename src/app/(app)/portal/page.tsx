@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateTicketForm } from "@/components/tickets/create-ticket-form";
-import { PriorityBadge } from "@/components/tickets/priority-badge";
 import { SlaIndicator } from "@/components/tickets/sla-indicator";
 import { StatusBadge } from "@/components/tickets/status-badge";
 import { TicketDetail } from "@/components/tickets/ticket-detail";

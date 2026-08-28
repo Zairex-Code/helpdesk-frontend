@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Timer } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { api, getErrorMessage } from "@/lib/api";
@@ -53,15 +53,15 @@ export function CreateTicketForm({ onCreated }: { onCreated: () => void }) {
     register,
     handleSubmit,
     setValue,
-    watch,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { erpModule: "FINANCIAL" },
   });
 
-  const selectedModule = watch("erpModule");
+  const selectedModule = useWatch({ control, name: "erpModule" });
 
   async function onSubmit(values: FormValues) {
     setLoading(true);
