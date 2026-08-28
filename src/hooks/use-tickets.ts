@@ -7,7 +7,7 @@ import type { TicketResponseDto } from "@/types/api";
 async function fetchTickets(): Promise<TicketResponseDto[]> {
   try {
     const { data } = await api.get<TicketResponseDto[]>("/api/v1/tickets");
-    return data;
+    return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }
