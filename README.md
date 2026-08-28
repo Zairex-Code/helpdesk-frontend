@@ -101,7 +101,6 @@ El JWT se guarda en `localStorage` y se inyecta en cada petición vía el interc
 ```
 helpdesk-frontend/
 ├── .env.example                         # Variables de entorno de ejemplo
-├── opencode.json                        # (local) Configuración MCP de Google Stitch
 ├── components.json                      # Configuración de shadcn/ui
 ├── public/                              # Assets estáticos
 └── src/
@@ -153,5 +152,9 @@ Endpoint principal: `GET /api/v1/tickets` (lista de tickets), más los comandos 
 ## 9. Google Stitch (prototipo)
 
 El prototipo visual vive en **Google Stitch** y se accede vía MCP. La configuración del servidor MCP de
-Stitch está en `opencode.json` (local, no versionado). Tras configurarlo, reinicia opencode para cargar las
-herramientas MCP de Stitch y poder leer el prototipo.
+Stitch (`type: remote`, `url: https://stitch.googleapis.com/mcp`, header `X-Goog-Api-Key`) está en la
+configuración global de opencode (`~/.config/opencode/opencode.jsonc`), por lo que **no se versiona** en este
+repositorio público.
+
+> Tras configurar el MCP hay que **reiniciar opencode** para que las herramientas de Stitch se carguen en la
+> sesión (la configuración no se recarga en caliente).
