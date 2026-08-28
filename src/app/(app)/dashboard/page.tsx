@@ -146,27 +146,23 @@ export default function DashboardPage() {
             <CardDescription>Porcentaje dentro de margen</CardDescription>
           </CardHeader>
           <CardContent className="flex h-72 flex-col items-center justify-center">
-            <ResponsiveContainer width="100%" height="70%">
-              <RadialBarChart
-                innerRadius="70%"
-                outerRadius="100%"
-                data={[{ value: stats.slaCompliance }]}
-                startAngle={90}
-                endAngle={-270}
-              >
-                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar dataKey="value" fill="var(--primary)" background cornerRadius={10} />
-                <text
-                  x="50%"
-                  y="50%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="fill-foreground text-3xl font-bold"
+            <div className="relative h-[70%] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  data={[{ value: stats.slaCompliance }]}
+                  startAngle={90}
+                  endAngle={-270}
                 >
-                  {stats.slaCompliance}%
-                </text>
-              </RadialBarChart>
-            </ResponsiveContainer>
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                  <RadialBar dataKey="value" fill="var(--primary)" background cornerRadius={10} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="text-3xl font-bold">{stats.slaCompliance}%</span>
+              </div>
+            </div>
             <p className="text-muted-foreground text-sm">
               CSAT promedio: <span className="font-semibold">{stats.csatAvg} / 5</span>
             </p>

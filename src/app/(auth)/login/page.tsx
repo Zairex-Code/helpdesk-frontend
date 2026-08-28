@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { api, getErrorMessage } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { getRoleFromToken, setToken } from "@/lib/auth";
 import { DEMO_ACCOUNTS, ROLES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,8 +50,7 @@ export default function LoginPage() {
     try {
       const { data } = await api.post<LoginResponseDto>("/api/v1/auth/login", values);
       setToken(data.token);
-      const role = (JSON.parse(atob(data.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")))
-        .groups?.[0] ?? null) as Role | null;
+      const role = getRoleFromToken(data.token);
       router.replace(role ? ROLE_HOME[role] : "/portal");
     } catch (e) {
       setError(getErrorMessage(e));

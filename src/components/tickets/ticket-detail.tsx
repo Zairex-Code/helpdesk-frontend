@@ -1,16 +1,31 @@
 "use client";
 
 import { History, Star } from "lucide-react";
+import { useState } from "react";
 import { MODULE_LABELS } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
+import { useSession } from "@/hooks/use-session";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CsatModal } from "@/components/tickets/csat-modal";
 import { PriorityBadge } from "@/components/tickets/priority-badge";
 import { SlaIndicator } from "@/components/tickets/sla-indicator";
 import { StatusBadge } from "@/components/tickets/status-badge";
 import type { TicketResponseDto } from "@/types/api";
 
-export function TicketDetail({ ticket }: { ticket: TicketResponseDto }) {
+export function TicketDetail({
+  ticket,
+  onUpdated,
+}: {
+  ticket: TicketResponseDto;
+  onUpdated?: () => void;
+}) {
+  const session = useSession();
+  const [csatOpen, setCsatOpen] = useState(false);
+
+  const canClose = ticket.status === "RESOLVED" && session?.role === "CLIENTE";
+
   return (
     <div className="space-y-4">
       <Card>
@@ -66,6 +81,15 @@ export function TicketDetail({ ticket }: { ticket: TicketResponseDto }) {
               )}
             </div>
           )}
+
+          {canClose && (
+            <div className="flex justify-end">
+              <Button onClick={() => setCsatOpen(true)} className="gap-2">
+                <Star className="size-4" />
+                Cerrar y calificar
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -88,6 +112,13 @@ export function TicketDetail({ ticket }: { ticket: TicketResponseDto }) {
           </ol>
         </CardContent>
       </Card>
+
+      <CsatModal
+        ticket={ticket}
+        open={csatOpen}
+        onOpenChange={setCsatOpen}
+        onClosed={() => onUpdated?.()}
+      />
     </div>
   );
 }

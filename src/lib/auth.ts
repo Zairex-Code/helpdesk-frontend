@@ -17,6 +17,11 @@ export function clearToken(): void {
   window.localStorage.removeItem(TOKEN_KEY);
 }
 
+export interface AuthSession {
+  email: string;
+  role: Role | null;
+}
+
 interface JwtPayload {
   sub?: string;
   upn?: string;
@@ -26,33 +31,44 @@ interface JwtPayload {
   iat?: number;
 }
 
-function decodePayload(token: string): JwtPayload | null {
+function base64UrlDecode(input: string): string {
+  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+function decodeJwtPayload(token: string): JwtPayload | null {
   try {
     const parts = token.split(".");
     if (parts.length < 2) return null;
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(payload)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(""),
-    );
-    return JSON.parse(json) as JwtPayload;
+    return JSON.parse(base64UrlDecode(parts[1])) as JwtPayload;
   } catch {
     return null;
   }
 }
 
-export function getSession(): { email: string; role: Role | null } | null {
-  const token = getToken();
+export function computeSession(token: string | null): AuthSession | null {
   if (!token) return null;
-  const payload = decodePayload(token);
+  const payload = decodeJwtPayload(token);
   if (!payload) return null;
   const role = payload.groups?.[0] as Role | undefined;
   return {
     email: payload.upn ?? payload.preferred_username ?? payload.sub ?? "",
     role: role ?? null,
   };
+}
+
+export function getSession(): AuthSession | null {
+  return computeSession(getToken());
+}
+
+export function getRoleFromToken(token: string): Role | null {
+  return computeSession(token)?.role ?? null;
 }
 
 export function getRole(): Role | null {

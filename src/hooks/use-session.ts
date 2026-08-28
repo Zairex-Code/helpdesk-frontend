@@ -1,13 +1,12 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { getSession } from "@/lib/auth";
-import type { Role } from "@/types/api";
+import { computeSession, getToken, type AuthSession } from "@/lib/auth";
 
-export interface Session {
-  email: string;
-  role: Role | null;
-}
+export type Session = AuthSession;
+
+let cachedToken: string | null | undefined;
+let cachedSession: Session | null = null;
 
 function subscribe(callback: () => void) {
   window.addEventListener("focus", callback);
@@ -19,7 +18,12 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot(): Session | null {
-  return getSession();
+  const token = getToken();
+  if (token !== cachedToken) {
+    cachedToken = token;
+    cachedSession = computeSession(token);
+  }
+  return cachedSession;
 }
 
 function getServerSnapshot(): Session | null {
@@ -28,7 +32,8 @@ function getServerSnapshot(): Session | null {
 
 /**
  * Returns the current session. Reads the JWT from localStorage on the client
- * only (server snapshot is null), avoiding hydration mismatches.
+ * only (server snapshot is null), avoiding hydration mismatches. The snapshot
+ * is cached per token so React sees a stable reference between renders.
  */
 export function useSession(): Session | null {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

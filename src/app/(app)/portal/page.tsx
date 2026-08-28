@@ -1,7 +1,8 @@
 "use client";
 
 import { Inbox, Ticket as TicketIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useSession } from "@/hooks/use-session";
 import { useTickets } from "@/hooks/use-tickets";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -18,13 +19,16 @@ const ACTIVE = ["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED"];
 const COMPLETED = ["CLOSED", "CANCELLED"];
 
 export default function PortalPage() {
+  const session = useSession();
   const { tickets, loading, refresh } = useTickets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const active = useMemo(() => tickets.filter((t) => ACTIVE.includes(t.status)), [tickets]);
-  const completed = useMemo(() => tickets.filter((t) => COMPLETED.includes(t.status)), [tickets]);
-
-  const selected = tickets.find((t) => t.id === selectedId) ?? null;
+  const myTickets = session?.email
+    ? tickets.filter((t) => t.requesterId === session.email)
+    : tickets;
+  const active = myTickets.filter((t) => ACTIVE.includes(t.status));
+  const completed = myTickets.filter((t) => COMPLETED.includes(t.status));
+  const selected = myTickets.find((t) => t.id === selectedId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -62,6 +66,7 @@ export default function PortalPage() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             detail={selected}
+            onUpdated={refresh}
           />
         </TabsContent>
         <TabsContent value="completed" className="mt-4">
@@ -71,6 +76,7 @@ export default function PortalPage() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             detail={selected}
+            onUpdated={refresh}
           />
         </TabsContent>
       </Tabs>
@@ -84,12 +90,14 @@ function TicketBrowser({
   selectedId,
   onSelect,
   detail,
+  onUpdated,
 }: {
   tickets: TicketResponseDto[];
   loading: boolean;
   selectedId: string | null;
   onSelect: (id: string) => void;
   detail: TicketResponseDto | null;
+  onUpdated: () => void;
 }) {
   if (loading) {
     return (
@@ -140,7 +148,7 @@ function TicketBrowser({
 
       <div>
         {detail ? (
-          <TicketDetail ticket={detail} />
+          <TicketDetail ticket={detail} onUpdated={onUpdated} />
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
             <TicketIcon className="text-muted-foreground/50 mb-3 size-10" />
